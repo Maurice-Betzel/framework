@@ -20,7 +20,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
 import com.vaadin.osgi.resources.VaadinResourceService;
 
 @Component(immediate = true)
@@ -29,12 +28,12 @@ public class LegacyThemeContributions {
             "reindeer", "runo" };
 
     private HttpService httpService;
+    private VaadinResourceService vaadinResourceService;
 
     @Activate
     void startup() throws Exception {
-        VaadinResourceService service = OsgiVaadinResources.getService();
         for (String themeName : LEGACY_THEMES) {
-            service.publishTheme(themeName, httpService);
+            vaadinResourceService.publishTheme(themeName, httpService);
         }
     }
 
@@ -46,4 +45,14 @@ public class LegacyThemeContributions {
     void unsetHttpService(HttpService httpService) {
         this.httpService = null;
     }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
+    }
+
 }

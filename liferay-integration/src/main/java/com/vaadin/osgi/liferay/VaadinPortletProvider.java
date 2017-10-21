@@ -26,7 +26,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
 import com.vaadin.osgi.resources.VaadinResourceService;
 import com.vaadin.ui.UI;
 
@@ -46,14 +45,14 @@ public class VaadinPortletProvider {
     private ServiceTracker<UI, ServiceObjects<UI>> serviceTracker;
     private PortletUIServiceTrackerCustomizer portletUIServiceTrackerCustomizer;
     private LogService logService;
+    private VaadinResourceService vaadinResourceService;
 
     @Activate
     void activate(ComponentContext componentContext) throws Exception {
         BundleContext bundleContext = componentContext.getBundleContext();
-        VaadinResourceService service = OsgiVaadinResources.getService();
 
         portletUIServiceTrackerCustomizer = new PortletUIServiceTrackerCustomizer(
-                service, logService);
+                vaadinResourceService, logService);
         serviceTracker = new ServiceTracker<UI, ServiceObjects<UI>>(
                 bundleContext, UI.class, portletUIServiceTrackerCustomizer);
         serviceTracker.open();
@@ -66,6 +65,15 @@ public class VaadinPortletProvider {
 
     void unsetLogService(LogService logService) {
         this.logService = null;
+    }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
     }
 
     @Deactivate

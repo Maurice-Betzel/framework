@@ -33,8 +33,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.whiteboard.HttpWhiteboardConstants;
 import org.osgi.service.log.LogService;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
-import com.vaadin.osgi.resources.OsgiVaadinResources.ResourceBundleInactiveException;
 import com.vaadin.osgi.resources.VaadinResourceService;
 import com.vaadin.server.Constants;
 import com.vaadin.server.VaadinServlet;
@@ -62,10 +60,10 @@ public class VaadinServletRegistration {
             + Constants.PARAMETER_VAADIN_RESOURCES;
 
     private LogService logService;
+    private VaadinResourceService vaadinResourceService;
 
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, service = VaadinServlet.class, policy = ReferencePolicy.DYNAMIC)
-    void bindVaadinServlet(VaadinServlet servlet, ServiceReference<VaadinServlet> reference)
-            throws ResourceBundleInactiveException {
+    void bindVaadinServlet(VaadinServlet servlet, ServiceReference<VaadinServlet> reference) {
         log(LogService.LOG_WARNING, "VaadinServlet Registration");
 
         Hashtable<String, Object> properties = getProperties(reference);
@@ -112,9 +110,8 @@ public class VaadinServletRegistration {
         return true;
     }
 
-    private String getResourcePath() throws ResourceBundleInactiveException {
-        VaadinResourceService service = OsgiVaadinResources.getService();
-        return String.format("/%s", service.getResourcePathPrefix());
+    private String getResourcePath() {
+        return String.format("/%s", vaadinResourceService.getResourcePathPrefix());
     }
 
     private void log(int level, String message) {
@@ -145,6 +142,15 @@ public class VaadinServletRegistration {
 
     void unsetLogService(LogService logService) {
         this.logService = null;
+    }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
     }
 
     private Hashtable<String, Object> getProperties(

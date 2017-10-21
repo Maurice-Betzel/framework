@@ -20,18 +20,17 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
 import com.vaadin.osgi.resources.VaadinResourceService;
 
 @Component(immediate = true)
 public class ValoThemeContribution {
 
     private HttpService httpService;
+    private VaadinResourceService vaadinResourceService;
 
     @Activate
     void startup() throws Exception {
-        VaadinResourceService service = OsgiVaadinResources.getService();
-        service.publishTheme("valo", httpService);
+        vaadinResourceService.publishTheme("valo", httpService);
     }
 
     @Reference
@@ -42,4 +41,14 @@ public class ValoThemeContribution {
     void unsetHttpService(HttpService httpService) {
         this.httpService = null;
     }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
+    }
+
 }

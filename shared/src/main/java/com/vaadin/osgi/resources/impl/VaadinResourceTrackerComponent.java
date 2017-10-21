@@ -36,8 +36,6 @@ import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
-import com.vaadin.osgi.resources.OsgiVaadinResources.ResourceBundleInactiveException;
 import com.vaadin.osgi.resources.OsgiVaadinTheme;
 import com.vaadin.osgi.resources.OsgiVaadinWidgetset;
 import com.vaadin.osgi.resources.VaadinResourceService;
@@ -53,6 +51,7 @@ import com.vaadin.osgi.resources.VaadinResourceService;
 @Component(immediate = true)
 public class VaadinResourceTrackerComponent {
     private HttpService httpService;
+    private VaadinResourceService vaadinResourceService;
 
     private Map<Long, String> themeToAlias = Collections
             .synchronizedMap(new LinkedHashMap<>());
@@ -60,8 +59,7 @@ public class VaadinResourceTrackerComponent {
             .synchronizedMap(new LinkedHashMap<>());
 
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, service = OsgiVaadinTheme.class, policy = ReferencePolicy.DYNAMIC)
-    void bindTheme(ServiceReference<OsgiVaadinTheme> themeRef)
-            throws ResourceBundleInactiveException, NamespaceException {
+    void bindTheme(ServiceReference<OsgiVaadinTheme> themeRef) throws NamespaceException {
 
         Bundle bundle = themeRef.getBundle();
         BundleContext context = bundle.getBundleContext();
@@ -71,11 +69,8 @@ public class VaadinResourceTrackerComponent {
             return;
         }
 
-        VaadinResourceService resourceService = OsgiVaadinResources
-                .getService();
-
         try {
-            String pathPrefix = resourceService.getResourcePathPrefix();
+            String pathPrefix = vaadinResourceService.getResourcePathPrefix();
             Long serviceId = (Long) themeRef.getProperty(Constants.SERVICE_ID);
 
             String alias = PathFormatHelper.getThemeAlias(theme.getName(),
@@ -100,8 +95,7 @@ public class VaadinResourceTrackerComponent {
     }
 
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, service = OsgiVaadinWidgetset.class, policy = ReferencePolicy.DYNAMIC)
-    void bindWidgetset(ServiceReference<OsgiVaadinWidgetset> widgetsetRef)
-            throws ResourceBundleInactiveException, NamespaceException {
+    void bindWidgetset(ServiceReference<OsgiVaadinWidgetset> widgetsetRef) throws NamespaceException {
         Bundle bundle = widgetsetRef.getBundle();
         BundleContext context = bundle.getBundleContext();
 
@@ -110,9 +104,8 @@ public class VaadinResourceTrackerComponent {
             return;
         }
 
-        VaadinResourceService service = OsgiVaadinResources.getService();
         try {
-            String pathPrefix = service.getResourcePathPrefix();
+            String pathPrefix = vaadinResourceService.getResourcePathPrefix();
 
             Long serviceId = (Long) widgetsetRef
                     .getProperty(Constants.SERVICE_ID);
@@ -146,6 +139,15 @@ public class VaadinResourceTrackerComponent {
 
     void unsetHttpService(HttpService service) {
         this.httpService = null;
+    }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
     }
 
     static final class Delegate implements HttpContext {

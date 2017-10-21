@@ -15,6 +15,9 @@
  */
 package com.vaadin.osgi.resources.impl;
 
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
@@ -28,6 +31,7 @@ import com.vaadin.osgi.resources.VaadinResourceService;
  *
  * @since 8.1
  */
+@Component(immediate = true, scope = ServiceScope.SINGLETON)
 public class VaadinResourceServiceImpl implements VaadinResourceService {
     private static final String NAMESPACE_PREFIX = "vaadin-%s";
 
@@ -36,25 +40,26 @@ public class VaadinResourceServiceImpl implements VaadinResourceService {
     private String pathPrefix;
 
     /**
-     * Sets the version of the bundle managing this service.
+     * Constructor, Sets the version of the bundle managing this service.
      *
-     * <p>
-     * This needs to be called before any other method after the service is
-     * created.
      *
-     * @param bundleVersion
-     *            the version of the bundle managing this service
      */
-    public void setBundleVersion(String bundleVersion) {
-        this.bundleVersion = bundleVersion;
+
+    public VaadinResourceServiceImpl() {
+        this.bundleVersion = FrameworkUtil.getBundle(VaadinResourceServiceImpl.class).
+                getBundleContext().getBundle().getVersion().toString();
         pathPrefix = String.format(NAMESPACE_PREFIX, bundleVersion);
+    }
+
+
+    public void setBundleVersion(String bundleVersion) {
+
     }
 
     @Override
     public void publishTheme(String themeName, HttpService httpService)
             throws NamespaceException {
-        String themeAlias = PathFormatHelper.getThemeAlias(themeName,
-                pathPrefix);
+        String themeAlias = PathFormatHelper.getThemeAlias(themeName, pathPrefix);
         String themePath = PathFormatHelper.getThemePath(themeName);
         httpService.registerResources(themeAlias, themePath, null);
     }
@@ -62,8 +67,7 @@ public class VaadinResourceServiceImpl implements VaadinResourceService {
     @Override
     public void publishResource(String resource, HttpService httpService)
             throws NamespaceException {
-        String alias = PathFormatHelper.getRootResourceAlias(resource,
-                pathPrefix);
+        String alias = PathFormatHelper.getRootResourceAlias(resource, pathPrefix);
         String path = PathFormatHelper.getRootResourcePath(resource);
         httpService.registerResources(alias, path, null);
     }

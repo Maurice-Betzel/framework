@@ -21,7 +21,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.http.HttpService;
 
-import com.vaadin.osgi.resources.OsgiVaadinResources;
 import com.vaadin.osgi.resources.VaadinResourceService;
 
 @Component(immediate = true)
@@ -31,12 +30,12 @@ public class PushResourcesContribution {
     private static final String[] RESOURCES = { "vaadinPush.js",
             "vaadinPush.js.gz", "vaadinPush.debug.js",
             "vaadinPush.debug.js.gz" };
+    private VaadinResourceService vaadinResourceService;
 
     @Activate
     void startup(ComponentContext context) throws Exception {
-        VaadinResourceService service = OsgiVaadinResources.getService();
         for (String resourceName : RESOURCES) {
-            service.publishResource(resourceName, httpService);
+            vaadinResourceService.publishResource(resourceName, httpService);
         }
     }
 
@@ -48,4 +47,14 @@ public class PushResourcesContribution {
     void unsetHttpService(HttpService httpService) {
         this.httpService = null;
     }
+
+    @Reference
+    void setVaadinResourceService(VaadinResourceService vaadinResourceService) {
+        this.vaadinResourceService = vaadinResourceService;
+    }
+
+    void unsetVaadinResourceService() {
+        this.vaadinResourceService = null;
+    }
+
 }
